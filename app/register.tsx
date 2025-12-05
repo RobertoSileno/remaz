@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function RegisterScreen() {
@@ -39,11 +40,14 @@ export default function RegisterScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoMain}>REMAZ</Text>
-            <Text style={styles.logoSub}>PHARM</Text>
-          </View>
+                    {/* Logo */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                          source={require('../assets/images/logo1.png')}
+                          style={styles.logo}
+                          resizeMode="contain"
+                        />
+                    </View>
 
           {/* Full Name Input */}
           <View style={styles.inputWrapper}>
@@ -152,21 +156,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    marginBottom: 40,
+    marginBottom: 20,
     alignItems: 'center',
   },
-  logoMain: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#0099CC',
-    letterSpacing: 2,
-  },
-  logoSub: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#0099CC',
-    letterSpacing: 1,
-    marginTop: 4,
+  logo: {
+    width: 538,
+    height: 269,
   },
   inputWrapper: {
     width: '100%',

@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function LoginScreen() {
@@ -16,11 +17,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = () => {
-    if (username && password) {
-      router.replace('/(tabs)');
-    }
-  };
+  // const handleLogin = () => {
+  //   if (username && password) {
+  //     setTimeout(() => {
+  //       router.push('/home');
+  //     }, 300);
+  //   }
+  // };
 
   return (
     <KeyboardAvoidingView
@@ -34,8 +37,11 @@ export default function LoginScreen() {
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <Text style={styles.logoMain}>REMAZ</Text>
-            <Text style={styles.logoSub}>PHARM</Text>
+            <Image
+              source={require('../assets/images/logo1.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Username Input */}
@@ -76,7 +82,7 @@ export default function LoginScreen() {
           {/* Login Button */}
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={handleLogin}
+            onPress={() => router.push('/home')}
             activeOpacity={0.8}
           >
             <Text style={styles.loginButtonText}>Entrar</Text>
@@ -103,21 +109,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    marginBottom: 60,
+    marginBottom: 20,
     alignItems: 'center',
   },
-  logoMain: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#0099CC',
-    letterSpacing: 2,
-  },
-  logoSub: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#0099CC',
-    letterSpacing: 1,
-    marginTop: 4,
+  logo: {
+    width: 538,
+    height: 269,
   },
   inputWrapper: {
     width: '100%',
