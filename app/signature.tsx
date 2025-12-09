@@ -58,8 +58,9 @@ const styles = StyleSheet.create({
   headerLeft: {},
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerLogo: {
-    width: 180,
-    height: 72,
+    width: 126,
+    height: 50,
+    marginRight: 'auto',
   },
   userName: { color: '#FFFFFF', fontSize: 14, marginRight: 6 },
   content: { flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 24 },
