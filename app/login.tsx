@@ -1,6 +1,10 @@
+import { RemazColors, RemazRadius } from '@/constants/remaz-theme';
+import { useAuth } from '@/contexts/auth-context';
+import { ApiError } from '@/services/api';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,79 +17,72 @@ import {
 } from 'react-native';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { user, signIn } = useAuth();
   const router = useRouter();
 
-  // const handleLogin = () => {
-  //   if (username && password) {
-  //     setTimeout(() => {
-  //       router.push('/home');
-  //     }, 300);
-  //   }
-  // };
+  useEffect(() => {
+    if (user) {
+      router.replace('/home');
+    }
+  }, [router, user]);
+
+  const handleLogin = async () => {
+    if (!identifier.trim() || !password) {
+      setError('Informe seu e-mail ou CPF e sua senha.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await signIn(identifier.trim(), password);
+      router.replace('/home');
+    } catch (loginError) {
+      setError(loginError instanceof ApiError ? loginError.message : 'Nao foi possivel entrar.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/images/logo1.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Username Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Login</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite seu nome"
-              placeholderTextColor="#999"
-              value={username}
-              onChangeText={setUsername}
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite sua senha"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-
-          {/* Forgot Password and Register */}
-          <View style={styles.linksContainer}>
-            <TouchableOpacity onPress={() => router.push('/recover')}>
-              <Text style={styles.linkText}>Esqueceu a senha?</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={styles.linkText}>Cadastre-se</Text>
+    <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.brand}>
+          <Image source={require('../assets/images/logo1.png')} style={styles.logo} resizeMode="contain" />
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.welcome}>Compre seus medicamentos com seguranca</Text>
+          <View style={styles.tabs}>
+            <Text style={[styles.tab, styles.activeTab]}>Entrar</Text>
+            <TouchableOpacity style={styles.tabButton} onPress={() => router.push('/register')}>
+              <Text style={styles.tab}>Cadastrar</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Login Button */}
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => router.push('/home')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.loginButtonText}>Entrar</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TextInput
+            style={styles.input}
+            placeholder="E-mail ou CPF"
+            placeholderTextColor="#9CA3AF"
+            value={identifier}
+            autoCapitalize="none"
+            onChangeText={setIdentifier}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#9CA3AF"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity onPress={() => router.push('/recover')}>
+            <Text style={styles.link}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={submitting}>
+            {submitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -94,79 +91,46 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
+  page: { flex: 1, backgroundColor: RemazColors.background },
+  content: { flexGrow: 1 },
+  brand: {
+    height: 280,
+    backgroundColor: RemazColors.primary,
+    borderBottomRightRadius: 130,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
   },
-  content: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  logo: {
-    width: 538,
-    height: 269,
-  },
-  inputWrapper: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#0099CC',
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#0099CC',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: '#333',
-    backgroundColor: '#FFFFFF',
-  },
-  linksContainer: {
+  logo: { width: 245, height: 165 },
+  form: { padding: 26, gap: 18 },
+  welcome: { textAlign: 'center', color: RemazColors.primaryDark, fontSize: 15 },
+  tabs: {
+    height: 52,
+    backgroundColor: RemazColors.primary,
+    borderRadius: RemazRadius.pill,
+    padding: 5,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 32,
-    paddingHorizontal: 4,
+    alignSelf: 'center',
   },
-  linkText: {
-    fontSize: 12,
-    color: '#0099CC',
-    fontWeight: '500',
+  tabButton: { justifyContent: 'center' },
+  tab: { paddingHorizontal: 25, paddingVertical: 11, color: '#FFF', fontWeight: '600' },
+  activeTab: { backgroundColor: RemazColors.accent, borderRadius: RemazRadius.pill },
+  input: {
+    height: 54,
+    borderColor: RemazColors.link,
+    borderWidth: 1.5,
+    borderRadius: RemazRadius.input,
+    paddingHorizontal: 20,
+    backgroundColor: RemazColors.surface,
   },
-  loginButton: {
-    width: '100%',
-    backgroundColor: '#FF3B30',
-    paddingVertical: 14,
-    borderRadius: 25,
+  error: { color: RemazColors.danger, textAlign: 'center' },
+  link: { textAlign: 'right', color: RemazColors.primaryDark, fontSize: 13 },
+  button: {
+    height: 54,
+    borderRadius: RemazRadius.pill,
+    backgroundColor: RemazColors.primary,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 5,
   },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
+  buttonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

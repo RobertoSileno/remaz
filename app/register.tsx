@@ -1,6 +1,10 @@
+import { RemazColors, RemazRadius } from '@/constants/remaz-theme';
+import { useAuth } from '@/contexts/auth-context';
+import { ApiError } from '@/services/api';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,126 +17,49 @@ import {
 } from 'react-native';
 
 export default function RegisterScreen() {
-  const [fullName, setFullName] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [form, setForm] = useState({ name: '', cpf: '', email: '', password: '', confirmPassword: '' });
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { signUp } = useAuth();
   const router = useRouter();
 
-  const handleRegister = () => {
-    if (fullName && cpf && email && password && confirmPassword && password === confirmPassword) {
-      router.replace('/(tabs)');
+  const update = (field: keyof typeof form, value: string) => setForm((previous) => ({ ...previous, [field]: value }));
+  const handleRegister = async () => {
+    if (form.password !== form.confirmPassword) {
+      setError('As senhas nao coincidem.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await signUp(form.name.trim(), form.cpf.trim(), form.email.trim(), form.password);
+      router.replace('/home');
+    } catch (registerError) {
+      setError(registerError instanceof ApiError ? registerError.message : 'Nao foi possivel cadastrar.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleBackToLogin = () => {
-    router.back();
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-                    {/* Logo */}
-                    <View style={styles.logoContainer}>
-                        <Image
-                          source={require('../assets/images/logo1.png')}
-                          style={styles.logo}
-                          resizeMode="contain"
-                        />
-                    </View>
-
-          {/* Full Name Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Nome completo</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite seu nome"
-              placeholderTextColor="#999"
-              value={fullName}
-              onChangeText={setFullName}
-            />
-          </View>
-
-          {/* CPF Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>CPF</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite seu CPF"
-              placeholderTextColor="#999"
-              value={cpf}
-              onChangeText={setCpf}
-              keyboardType="numeric"
-            />
-          </View>
-
-          {/* Email Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>E-mail</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite seu E-mail"
-              placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite sua senha"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-
-          {/* Confirm Password Input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Confirmar Senha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite sua senha"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-          </View>
-
-          {/* Need Help Link */}
-          <TouchableOpacity style={styles.helpLinkContainer}>
-            <Text style={styles.helpLinkText}>Precisa de ajuda?</Text>
+    <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.brand}>
+          <Image source={require('../assets/images/logo1.png')} style={styles.logo} resizeMode="contain" />
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.title}>Criar conta de cliente</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TextInput style={styles.input} placeholder="Nome completo" value={form.name} onChangeText={(value) => update('name', value)} />
+          <TextInput style={styles.input} placeholder="CPF" keyboardType="numeric" value={form.cpf} onChangeText={(value) => update('cpf', value)} />
+          <TextInput style={styles.input} placeholder="E-mail" keyboardType="email-address" autoCapitalize="none" value={form.email} onChangeText={(value) => update('email', value)} />
+          <TextInput style={styles.input} placeholder="Senha" secureTextEntry value={form.password} onChangeText={(value) => update('password', value)} />
+          <TextInput style={styles.input} placeholder="Confirmar senha" secureTextEntry value={form.confirmPassword} onChangeText={(value) => update('confirmPassword', value)} />
+          <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={submitting}>
+            {submitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
           </TouchableOpacity>
-
-          {/* Register Button */}
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.registerButtonText}>Cadastrar</Text>
-          </TouchableOpacity>
-
-          {/* Back to Login */}
-          <TouchableOpacity
-            style={styles.backContainer}
-            onPress={handleBackToLogin}
-          >
-            <Text style={styles.backText}>Voltar ao Login</Text>
+          <TouchableOpacity onPress={() => router.replace('/login')}>
+            <Text style={styles.link}>Ja tenho conta. Entrar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -141,84 +68,15 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-  },
-  content: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  logo: {
-    width: 538,
-    height: 269,
-  },
-  inputWrapper: {
-    width: '100%',
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FF3B30',
-    marginBottom: 6,
-    marginLeft: 4,
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#0099CC',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: '#333',
-    backgroundColor: '#FFFFFF',
-  },
-  helpLinkContainer: {
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  helpLinkText: {
-    fontSize: 12,
-    color: '#0099CC',
-    fontWeight: '500',
-  },
-  registerButton: {
-    width: '100%',
-    backgroundColor: '#FF3B30',
-    paddingVertical: 14,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  registerButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  backContainer: {
-    paddingVertical: 8,
-  },
-  backText: {
-    fontSize: 12,
-    color: '#0099CC',
-    fontWeight: '500',
-  },
+  page: { flex: 1, backgroundColor: RemazColors.background },
+  content: { flexGrow: 1 },
+  brand: { height: 180, backgroundColor: RemazColors.primary, borderBottomRightRadius: 100, justifyContent: 'center', alignItems: 'center' },
+  logo: { width: 185, height: 120 },
+  form: { padding: 24, gap: 14 },
+  title: { fontSize: 20, fontWeight: '700', color: RemazColors.primaryDark, textAlign: 'center', marginBottom: 4 },
+  input: { height: 52, borderWidth: 1.5, borderColor: RemazColors.link, borderRadius: RemazRadius.input, backgroundColor: '#FFF', paddingHorizontal: 18 },
+  button: { height: 54, borderRadius: RemazRadius.pill, backgroundColor: RemazColors.primary, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
+  buttonText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
+  error: { color: RemazColors.danger, textAlign: 'center' },
+  link: { color: RemazColors.primary, fontWeight: '600', textAlign: 'center', marginTop: 8 },
 });

@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# Remaz Pharm Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo cliente da Remaz Pharm, feito com Expo/React Native e consumindo a
+API Django do projeto `remaz-pharm-site`.
 
-## Get started
+## Arquitetura
 
-1. Install dependencies
+- O aplicativo nunca conecta diretamente no PostgreSQL/Supabase.
+- O Django carrega o `.env`, acessa o mesmo banco do site e publica `/api/`.
+- O token de login e salvo no armazenamento seguro do dispositivo.
+- O app possui somente fluxos de comprador: conta, catalogo, carrinho,
+  endereco, receita PDF, checkout e pedidos.
 
-   ```bash
-   npm install
+## Desenvolvimento Android
+
+1. No backend, aplique migracoes e inicie a API:
+
+   ```powershell
+   .\.venv\Scripts\python.exe manage.py migrate
+   .\.venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
    ```
 
-2. Start the app
+2. No app, instale dependencias e configure a URL:
 
-   ```bash
-   npx expo start
+   ```powershell
+   npm.cmd ci
+   Copy-Item .env.example .env
    ```
 
-In the output, you'll find options to open the app in a
+3. Para Android Emulator, mantenha:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```text
+   EXPO_PUBLIC_API_URL=http://10.0.2.2:8000/api
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+4. Execute:
 
-## Get a fresh project
+   ```powershell
+   npx.cmd expo start --android
+   ```
 
-When you're ready, run:
+Em aparelho fisico, substitua `10.0.2.2` pelo IP local da maquina que executa
+o Django. Em producao, use apenas uma URL HTTPS.
 
-```bash
-npm run reset-project
+## Validacao
+
+```powershell
+npm.cmd exec tsc -- --noEmit
+npm.cmd run lint
+npx.cmd expo export --platform android
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

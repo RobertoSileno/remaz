@@ -1,126 +1,65 @@
+import { AppHeader } from '@/components/app-header';
+import { RemazColors, RemazRadius } from '@/constants/remaz-theme';
+import { useAuth } from '@/contexts/auth-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ReceiptCaptureScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
+export default function ReceiptScreen() {
+  const { user } = useAuth();
   const router = useRouter();
+  const [selected, setSelected] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  // Solicitar permissões
-  if (!permission) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0099CC" />
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.permissionContainer}>
-          <MaterialCommunityIcons name="camera-off" size={64} color="#FF3B30" />
-          <Text style={styles.permissionText}>Permissão de câmera necessária</Text>
-          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-            <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const handleCapture = async () => {
-    if (isCapturing) return;
-
-    try {
-      setIsCapturing(true);
-
-      if (!cameraRef.current) {
-        Alert.alert('Erro', 'Câmera não disponível');
-        return;
-      }
-
-      // Capturar foto
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-        exif: false,
-      });
-
-      if (!photo?.uri) {
-        Alert.alert('Erro', 'Não foi possível capturar a foto');
-        return;
-      }
-
-      // Foto capturada com sucesso (salva automaticamente na pasta temporária do app)
-      Alert.alert('Sucesso', 'Receita capturada com sucesso!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            router.push('/signature');
-          },
-        },
-      ]);
-    } catch (error) {
-      console.error('Erro ao capturar foto:', error);
-      Alert.alert('Erro', 'Erro ao capturar a foto');
-    } finally {
-      setIsCapturing(false);
+  const choosePdf = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+      copyToCacheDirectory: true,
+      multiple: false,
+    });
+    if (!result.canceled) {
+      setSelected(result.assets[0]);
     }
   };
 
+  const proceed = () => {
+    if (!selected) {
+      return;
+    }
+    router.push({
+      pathname: '/checkout',
+      params: {
+        prescriptionUri: selected.uri,
+        prescriptionName: selected.name,
+        prescriptionMime: selected.mimeType || 'application/pdf',
+      },
+    });
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Capturar Receita</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      {/* Camera View */}
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing="back"
-      >
-        {/* Overlay com instruções */}
-        <View style={styles.overlay}>
-          <View style={styles.overlayFrame}>
-            <Text style={styles.overlayText}>Posicione a receita dentro do frame</Text>
-          </View>
+    <SafeAreaView style={styles.page}>
+      <AppHeader name={user?.name} title="Receita digital" />
+      <View style={styles.content}>
+        <View style={styles.notice}>
+          <MaterialCommunityIcons name="shield-lock-outline" size={28} color={RemazColors.primary} />
+          <Text style={styles.noticeTitle}>Documento protegido</Text>
+          <Text style={styles.text}>
+            Envie sua receita em PDF, assinada pelo gov.br. O documento sera acessivel apenas
+            por voce e pela farmacia responsavel pelo pedido.
+          </Text>
         </View>
-      </CameraView>
-
-      {/* Footer com botão de captura */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
-          onPress={handleCapture}
-          disabled={isCapturing}
-        >
-          {isCapturing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <>
-              <MaterialCommunityIcons name="camera" size={24} color="#FFFFFF" />
-              <Text style={styles.captureButtonText}>Capturar</Text>
-            </>
-          )}
+        <TouchableOpacity style={styles.upload} onPress={choosePdf}>
+          <MaterialCommunityIcons name="file-pdf-box" size={45} color={RemazColors.accent} />
+          <Text style={styles.uploadTitle}>{selected ? selected.name : 'Selecionar receita PDF'}</Text>
+          <Text style={styles.text}>{selected ? 'Arquivo pronto para envio' : 'Limite de 10 MB'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, !selected && styles.disabled]} disabled={!selected} onPress={proceed}>
+          <Text style={styles.buttonText}>Continuar para checkout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.back}>Voltar ao carrinho</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -128,97 +67,15 @@ export default function ReceiptCaptureScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#006C8C',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#006C8C',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  camera: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  overlayFrame: {
-    width: '100%',
-    height: 400,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  },
-  overlayText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  footer: {
-    backgroundColor: '#006C8C',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captureButton: {
-    backgroundColor: '#006C8C',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  captureButtonDisabled: {
-    opacity: 0.6,
-  },
-  captureButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  permissionText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginTop: 16,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  permissionButton: {
-    backgroundColor: '#FF3B30',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  permissionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  page: { flex: 1, backgroundColor: RemazColors.background },
+  content: { padding: 20, gap: 18 },
+  notice: { borderRadius: RemazRadius.card, padding: 20, backgroundColor: '#FFF', gap: 10, alignItems: 'center' },
+  noticeTitle: { color: RemazColors.primaryDark, fontWeight: '700', fontSize: 18 },
+  text: { textAlign: 'center', color: RemazColors.muted, lineHeight: 20 },
+  upload: { minHeight: 170, borderRadius: RemazRadius.card, borderWidth: 1.5, borderStyle: 'dashed', borderColor: RemazColors.link, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', padding: 18, gap: 8 },
+  uploadTitle: { color: RemazColors.primaryDark, fontWeight: '700', textAlign: 'center' },
+  button: { height: 54, borderRadius: RemazRadius.pill, backgroundColor: RemazColors.primary, justifyContent: 'center', alignItems: 'center' },
+  disabled: { opacity: 0.45 },
+  buttonText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  back: { textAlign: 'center', color: RemazColors.primary, fontWeight: '600' },
 });
