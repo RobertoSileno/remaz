@@ -4,6 +4,7 @@ export const RemazColors = {
   accent: '#FF3B30',
   link: '#5CA8CF',
   background: '#F0F0F0',
+  publicBackground: '#F3F3F3',
   surface: '#FFFFFF',
   border: '#D8D8D8',
   muted: '#64748B',

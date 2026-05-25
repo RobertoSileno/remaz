@@ -24,7 +24,7 @@ export type Inventory = {
   category: string;
   tarja: string;
   requires_prescription: boolean;
-  pharmacy: { id: number; name: string };
+  pharmacy: { id: number; name: string; logo: string };
   stock: number;
   price: string;
   effective_price: string;
@@ -42,6 +42,11 @@ export type Cart = {
   items: CartItem[];
   total: string;
   requires_prescription: boolean;
+};
+
+export type CatalogCategory = {
+  id: number;
+  name: string;
 };
 
 export type Address = {
@@ -177,7 +182,16 @@ export const api = {
       await saveToken(null);
     }
   },
-  catalog: (query = '') => request<{ results: Inventory[] }>(`/catalog/?q=${encodeURIComponent(query)}`),
+  catalog: (query = '', categoryId?: number, tarja?: string) => {
+    const params = [`q=${encodeURIComponent(query)}`];
+    if (categoryId) {
+      params.push(`category=${categoryId}`);
+    }
+    if (tarja) {
+      params.push(`tarja=${encodeURIComponent(tarja)}`);
+    }
+    return request<{ results: Inventory[]; categories: CatalogCategory[] }>(`/catalog/?${params.join('&')}`);
+  },
   cart: () => request<Cart>('/cart/'),
   addToCart: (inventoryId: number) => request<Cart>('/cart/items/', {
     method: 'POST',

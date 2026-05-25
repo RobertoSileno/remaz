@@ -7,7 +7,7 @@ export default function RecoverScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.brand}>
-        <Image source={require('../assets/images/logo1.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={require('../assets/images/logo2.png')} style={styles.logo} resizeMode="contain" />
       </View>
       <View style={styles.card}>
         <Text style={styles.title}>Recuperacao de senha</Text>
@@ -27,12 +27,12 @@ export default function RecoverScreen() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: RemazColors.background },
-  brand: { height: 260, backgroundColor: RemazColors.primary, borderBottomRightRadius: 130, alignItems: 'center', justifyContent: 'center' },
-  logo: { width: 230, height: 145 },
-  card: { margin: 24, padding: 24, borderRadius: RemazRadius.card, backgroundColor: '#FFF', gap: 16 },
-  title: { color: RemazColors.primaryDark, fontSize: 21, fontWeight: '700' },
-  text: { color: RemazColors.muted, fontSize: 15, lineHeight: 22 },
-  button: { height: 52, borderRadius: RemazRadius.pill, backgroundColor: RemazColors.primary, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  buttonText: { color: '#FFF', fontWeight: '700' },
+  page: { flex: 1, backgroundColor: RemazColors.publicBackground },
+  brand: { height: 150, backgroundColor: RemazColors.primary, borderBottomLeftRadius: 70, borderBottomRightRadius: 70, alignItems: 'center', justifyContent: 'center' },
+  logo: { width: 148, height: 70 },
+  card: { margin: 12, marginTop: 20, padding: 18, borderRadius: RemazRadius.card, backgroundColor: '#FFF', gap: 14 },
+  title: { color: RemazColors.primaryDark, fontSize: 18, fontWeight: '700' },
+  text: { color: RemazColors.muted, fontSize: 13, lineHeight: 20 },
+  button: { width: 160, height: 44, alignSelf: 'center', borderRadius: RemazRadius.pill, backgroundColor: RemazColors.primary, justifyContent: 'center', alignItems: 'center', marginTop: 6 },
+  buttonText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 });

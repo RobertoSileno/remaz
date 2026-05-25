@@ -51,35 +51,44 @@ export default function LoginScreen() {
     <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.brand}>
-          <Image source={require('../assets/images/logo1.png')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../assets/images/logo2.png')} style={styles.logo} resizeMode="contain" />
         </View>
         <View style={styles.form}>
-          <Text style={styles.welcome}>Compre seus medicamentos com seguranca</Text>
+          <Text style={styles.welcome}>Bem-vindo de volta!</Text>
           <View style={styles.tabs}>
-            <Text style={[styles.tab, styles.activeTab]}>Entrar</Text>
+            <View style={[styles.tabButton, styles.activeTab]}>
+              <Text style={styles.tab}>Entrar</Text>
+            </View>
             <TouchableOpacity style={styles.tabButton} onPress={() => router.push('/register')}>
-              <Text style={styles.tab}>Cadastrar</Text>
+              <Text style={styles.tab}>Registrar</Text>
             </TouchableOpacity>
           </View>
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <TextInput
-            style={styles.input}
-            placeholder="E-mail ou CPF"
-            placeholderTextColor="#9CA3AF"
-            value={identifier}
-            autoCapitalize="none"
-            onChangeText={setIdentifier}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          {error ? <Text style={styles.errorHelp}>Confira seus dados ou cadastre uma conta de cliente com CPF valido.</Text> : null}
+          <View style={styles.field}>
+            <Text style={styles.label}>Email ou CPF</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite"
+              placeholderTextColor="#9CA3AF"
+              value={identifier}
+              autoCapitalize="none"
+              onChangeText={setIdentifier}
+            />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Senha</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
           <TouchableOpacity onPress={() => router.push('/recover')}>
-            <Text style={styles.link}>Esqueceu sua senha?</Text>
+            <Text style={styles.link}>esqueceu a senha ?</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={submitting}>
             {submitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
@@ -91,46 +100,54 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: RemazColors.background },
+  page: { flex: 1, backgroundColor: RemazColors.publicBackground },
   content: { flexGrow: 1 },
   brand: {
-    height: 280,
+    height: 150,
     backgroundColor: RemazColors.primary,
-    borderBottomRightRadius: 130,
+    borderBottomLeftRadius: 70,
+    borderBottomRightRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logo: { width: 245, height: 165 },
-  form: { padding: 26, gap: 18 },
-  welcome: { textAlign: 'center', color: RemazColors.primaryDark, fontSize: 15 },
+  logo: { width: 148, height: 70 },
+  form: { paddingTop: 20, paddingHorizontal: 12, paddingBottom: 30, gap: 14 },
+  welcome: { textAlign: 'center', color: '#222', fontSize: 14, marginBottom: 1 },
   tabs: {
-    height: 52,
+    height: 46,
+    width: '100%',
     backgroundColor: RemazColors.primary,
     borderRadius: RemazRadius.pill,
-    padding: 5,
+    padding: 4,
     flexDirection: 'row',
-    alignSelf: 'center',
+    marginBottom: 2,
   },
-  tabButton: { justifyContent: 'center' },
-  tab: { paddingHorizontal: 25, paddingVertical: 11, color: '#FFF', fontWeight: '600' },
+  tabButton: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  tab: { color: '#FFF', fontWeight: '600', fontSize: 12 },
   activeTab: { backgroundColor: RemazColors.accent, borderRadius: RemazRadius.pill },
+  field: { gap: 6 },
+  label: { color: '#111', fontSize: 12 },
   input: {
-    height: 54,
+    height: 44,
     borderColor: RemazColors.link,
     borderWidth: 1.5,
-    borderRadius: RemazRadius.input,
-    paddingHorizontal: 20,
-    backgroundColor: RemazColors.surface,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
+    fontSize: 13,
   },
   error: { color: RemazColors.danger, textAlign: 'center' },
-  link: { textAlign: 'right', color: RemazColors.primaryDark, fontSize: 13 },
+  errorHelp: { color: RemazColors.muted, textAlign: 'center', fontSize: 12, marginTop: -8 },
+  link: { textAlign: 'right', color: '#444', fontSize: 11, marginTop: 1, marginBottom: 4 },
   button: {
-    height: 54,
+    width: 140,
+    height: 44,
     borderRadius: RemazRadius.pill,
     backgroundColor: RemazColors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    alignSelf: 'center',
+    marginTop: 4,
   },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  buttonText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 });
