@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 const TOKEN_KEY = 'remaz_mobile_token';
+const API_URL_KEY = 'remaz_mobile_api_url';
 const fallbackApiUrl = Platform.OS === 'android'
   ? 'http://10.0.2.2:8000/api'
   : 'http://127.0.0.1:8000/api';
@@ -104,6 +105,47 @@ async function storedToken() {
   return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
+async function storedApiUrl() {
+  if (Platform.OS === 'web') {
+    return globalThis.localStorage?.getItem(API_URL_KEY) ?? null;
+  }
+  return SecureStore.getItemAsync(API_URL_KEY);
+}
+
+export function normalizeApiUrl(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, '');
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new ApiError('Informe uma URL valida para o servidor.', 0);
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new ApiError('Utilize uma URL HTTP ou HTTPS.', 0);
+  }
+  return `${trimmed}${/\/api$/i.test(trimmed) ? '' : '/api'}`;
+}
+
+export async function getApiUrl() {
+  return (await storedApiUrl()) || API_URL;
+}
+
+async function saveApiUrl(url: string | null) {
+  if (Platform.OS === 'web') {
+    if (url) {
+      globalThis.localStorage?.setItem(API_URL_KEY, url);
+    } else {
+      globalThis.localStorage?.removeItem(API_URL_KEY);
+    }
+    return;
+  }
+  if (url) {
+    await SecureStore.setItemAsync(API_URL_KEY, url);
+  } else {
+    await SecureStore.deleteItemAsync(API_URL_KEY);
+  }
+}
+
 export async function saveToken(token: string | null) {
   if (Platform.OS === 'web') {
     if (token) {
@@ -124,6 +166,7 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
   authenticated = true,
+  overrideApiUrl?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set('Accept', 'application/json');
@@ -140,7 +183,8 @@ async function request<T>(
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, { ...options, headers });
+    const apiUrl = overrideApiUrl || await getApiUrl();
+    response = await fetch(`${apiUrl}${path}`, { ...options, headers });
   } catch {
     throw new ApiError('Nao foi possivel acessar o servidor Remaz.', 0);
   }
@@ -155,6 +199,13 @@ async function request<T>(
 }
 
 export const api = {
+  currentUrl: () => getApiUrl(),
+  testAndUseUrl: async (value: string) => {
+    const url = normalizeApiUrl(value);
+    const result = await request<{ status: string; database: string }>('/health/', {}, false, url);
+    await saveApiUrl(url);
+    return { ...result, url };
+  },
   health: () => request<{ status: string; database: string }>('/health/', {}, false),
   login: async (identifier: string, password: string) => {
     const result = await request<{ token: string; user: Customer }>(

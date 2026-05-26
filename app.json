@@ -40,7 +40,17 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permita que a Remaz Pharm use a camera para escanear sua receita assinada.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "./plugins/with-camera-photo-only-android",
+      "./plugins/with-local-api-http-android"
     ],
     "experiments": {
       "typedRoutes": true,

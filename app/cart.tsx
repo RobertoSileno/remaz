@@ -79,7 +79,7 @@ export default function CartScreen() {
                 <Text style={styles.totalLabel}>Total</Text>
                 <Text style={styles.total}>R$ {cart.total.replace('.', ',')}</Text>
                 {cart.requires_prescription ? (
-                  <Text style={styles.notice}>Medicamento controlado: envie sua receita PDF assinada antes de concluir.</Text>
+                  <Text style={styles.notice}>Medicamento controlado: envie o PDF assinado ou fotografe a receita antes de concluir.</Text>
                 ) : null}
                 <TouchableOpacity style={styles.button} onPress={continuePurchase}>
                   <Text style={styles.buttonText}>{cart.requires_prescription ? 'Enviar receita' : 'Concluir pedido'}</Text>

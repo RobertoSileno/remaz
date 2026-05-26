@@ -147,9 +147,14 @@ export default function CheckoutScreen() {
         {cart?.requires_prescription ? (
           <View style={styles.prescription}>
             <MaterialCommunityIcons name="file-check-outline" size={25} color={RemazColors.success} />
-            <Text style={styles.prescriptionText}>
-              {prescriptionName ? `Receita anexada: ${prescriptionName}` : 'Receita obrigatoria ainda nao anexada.'}
-            </Text>
+            <View style={styles.prescriptionCopy}>
+              <Text style={styles.prescriptionText}>
+                {prescriptionName ? `Receita anexada: ${prescriptionName}` : 'Receita obrigatoria ainda nao anexada.'}
+              </Text>
+              <TouchableOpacity onPress={() => router.push('/receipt')}>
+                <Text style={styles.prescriptionAction}>{prescriptionName ? 'Trocar receita' : 'Escanear ou anexar receita'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : null}
 
@@ -199,7 +204,9 @@ const styles = StyleSheet.create({
   linkButton: { alignSelf: 'flex-start', paddingVertical: 10 },
   linkText: { color: RemazColors.primary, fontWeight: '700' },
   prescription: { flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: '#EFFAF3', padding: 14, borderRadius: 12, marginTop: 10 },
+  prescriptionCopy: { flex: 1, gap: 7 },
   prescriptionText: { flex: 1, color: RemazColors.success, fontWeight: '600', fontSize: 13 },
+  prescriptionAction: { color: RemazColors.primary, fontSize: 13, fontWeight: '700' },
   summary: { backgroundColor: '#FFF', borderRadius: RemazRadius.card, padding: 17, gap: 10, marginTop: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   totalRow: { borderTopWidth: 1, borderTopColor: '#E5E7EB', paddingTop: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

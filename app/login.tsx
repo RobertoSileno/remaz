@@ -1,6 +1,6 @@
 import { RemazColors, RemazRadius } from '@/constants/remaz-theme';
 import { useAuth } from '@/contexts/auth-context';
-import { ApiError } from '@/services/api';
+import { api, ApiError } from '@/services/api';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -21,6 +21,10 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showServerConfig, setShowServerConfig] = useState(false);
+  const [serverUrl, setServerUrl] = useState('');
+  const [serverStatus, setServerStatus] = useState('');
+  const [testingServer, setTestingServer] = useState(false);
   const { user, signIn } = useAuth();
   const router = useRouter();
 
@@ -29,6 +33,25 @@ export default function LoginScreen() {
       router.replace('/home');
     }
   }, [router, user]);
+
+  useEffect(() => {
+    api.currentUrl().then(setServerUrl).catch(() => undefined);
+  }, []);
+
+  const handleServerConfig = async () => {
+    setTestingServer(true);
+    setServerStatus('');
+    try {
+      const result = await api.testAndUseUrl(serverUrl);
+      setServerUrl(result.url);
+      setServerStatus('Servidor conectado. O aplicativo esta pronto para a demonstracao.');
+      setError('');
+    } catch (serverError) {
+      setServerStatus(serverError instanceof ApiError ? serverError.message : 'Nao foi possivel conectar ao servidor.');
+    } finally {
+      setTestingServer(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!identifier.trim() || !password) {
@@ -93,6 +116,28 @@ export default function LoginScreen() {
           <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={submitting}>
             {submitting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowServerConfig((current) => !current)}>
+            <Text style={styles.serverToggle}>{showServerConfig ? 'Ocultar configuracao' : 'Configurar conexao da demonstracao'}</Text>
+          </TouchableOpacity>
+          {showServerConfig ? (
+            <View style={styles.serverPanel}>
+              <Text style={styles.serverHelp}>Informe a URL HTTPS recebida para a API desta apresentacao.</Text>
+              <TextInput
+                style={styles.serverInput}
+                placeholder="https://servidor.trycloudflare.com/api"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                value={serverUrl}
+                onChangeText={setServerUrl}
+              />
+              <TouchableOpacity style={styles.serverButton} onPress={handleServerConfig} disabled={testingServer}>
+                {testingServer ? <ActivityIndicator color="#FFF" /> : <Text style={styles.serverButtonText}>Testar e usar servidor</Text>}
+              </TouchableOpacity>
+              {serverStatus ? <Text style={styles.serverStatus}>{serverStatus}</Text> : null}
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -150,4 +195,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buttonText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  serverToggle: { color: RemazColors.primary, textAlign: 'center', fontSize: 11, fontWeight: '600', marginTop: 10 },
+  serverPanel: { padding: 13, borderRadius: RemazRadius.card, backgroundColor: '#FFF', borderColor: RemazColors.border, borderWidth: 1, gap: 10 },
+  serverHelp: { color: RemazColors.muted, fontSize: 11, lineHeight: 16 },
+  serverInput: { height: 42, borderColor: RemazColors.link, borderWidth: 1.5, borderRadius: 21, paddingHorizontal: 14, fontSize: 12 },
+  serverButton: { height: 40, borderRadius: RemazRadius.pill, backgroundColor: RemazColors.primary, justifyContent: 'center', alignItems: 'center' },
+  serverButtonText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  serverStatus: { color: RemazColors.primaryDark, fontSize: 11, lineHeight: 16, textAlign: 'center' },
 });
